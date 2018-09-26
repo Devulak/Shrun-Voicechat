@@ -38,15 +38,15 @@ end
 
 function PANELR:Paint( w, h )
 
-	if ( !IsValid( self.ply ) ) then return end
+	if not IsValid( self.ply ) then return end
 	local voice = self.ply:VoiceVolume();
 	voice = 1;
-	voice = math.Rand(.1, 1);
+	voice = math.Rand(0, .5);
 
 	if self.Timer == nil then
 		self.Timer = 0;
 	end
-	self.Timer = self.Timer + RealFrameTime()*16;
+	self.Timer = self.Timer + RealFrameTime()*8;
 
 	if self.Bars == nil then
 		self.Bars = {};
@@ -60,12 +60,14 @@ function PANELR:Paint( w, h )
 	draw.RoundedBox( 4, 0, 0, w, h, theme.bgAlternative )
 	//draw.RoundedBox( 4, 0, h - 8, voice * w, 8, Color( 0, voice * 255, 0, 240 ) )
 
+	colBox = theme.blue;
+
 	for k,v in pairs(self.Bars) do
 		if k != 1 then
 			local width = 4
-			local offset = 0
+			local offset = width
 			local outerMargin = 4
-			local gap = 2
+			local gap = 0
 
 			local xPos = (k - 1 - self.Timer) * (width + gap) + w + offset;
 			local yPos = h - v * (h - outerMargin*2) - outerMargin;
@@ -81,10 +83,10 @@ function PANELR:Paint( w, h )
 			surface.DrawRect(xPos, yPos, width, v * (h - outerMargin*2))/**/
 
 
-			surface.SetDrawColor(theme.blue)
+			surface.SetDrawColor(colBox)
 
 			// Hills
-			/*surface.DrawLine(xPos2, yPos2, xPos, yPos);/**/
+			//surface.DrawLine(xPos2, yPos2, xPos, yPos);/**/
 
 			// Sequence
 			if k % 2 == 0 then
@@ -95,7 +97,14 @@ function PANELR:Paint( w, h )
 		end
 	end
 
-	draw.RoundedBox(4, 0, 0, 40, 40, theme:Transparency(theme.blue, voice));
+	draw.RoundedBox(4, 0, 0, 40, 40, theme:Transparency(colBox, voice));
+
+	while #self.Bars > 24 do
+		table.remove( self.Bars, 1 );
+		self.Timer = self.Timer - 1;
+		table.remove( self.Bars, 1 );
+		self.Timer = self.Timer - 1;
+	end
 
 end
 
@@ -179,7 +188,7 @@ function ShrunPlayerEndVoice( ply )
 
 	if ( IsValid( PlayerVoicePanels[ ply ] ) ) then
 
-		if ( PlayerVoicePanels[ ply ].fadeAnim ) then return end
+		if PlayerVoicePanels[ ply ].fadeAnim then return end
 
 		PlayerVoicePanels[ ply ].fadeAnim = Derma_Anim( "FadeOut", PlayerVoicePanels[ ply ], PlayerVoicePanels[ ply ].FadeOut )
 		PlayerVoicePanels[ ply ].fadeAnim:Start( 2 )
