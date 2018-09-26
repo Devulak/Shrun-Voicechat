@@ -77,7 +77,7 @@ function PANELR:Paint( w, h )
 			surface.DrawRect(xPos, yPos, width, v * (h - outerMargin*2))/**/
 
 			// Bars Unicolor
-			surface.SetDrawColor(theme.bg)
+			/*surface.SetDrawColor(theme.bg)
 			surface.DrawRect(xPos, yPos, width, v * (h - outerMargin*2))/**/
 
 
@@ -87,7 +87,7 @@ function PANELR:Paint( w, h )
 			/*surface.DrawLine(xPos2, yPos2, xPos, yPos);/**/
 
 			// Sequence
-			/*if k % 2 == 0 then
+			if k % 2 == 0 then
 				surface.DrawLine(xPos2, (yPos2 + outerMargin) / 2, xPos, h - (yPos + outerMargin) / 2);
 			else
 				surface.DrawLine(xPos2, h - (yPos2 + outerMargin) / 2, xPos, (yPos + outerMargin) / 2);
@@ -147,7 +147,7 @@ function ShrunPlayerStartVoice( ply )
 
 		PlayerVoicePanels[ ply ]:SetAlpha( 255 )
 
-		return
+		return false;
 
 	end
 
@@ -203,7 +203,7 @@ local function ShrunCreateVoiceVGUI()
 			g_VoicePanelList:SetPos(ScrW() - width -  theme.rem, theme.rem * 18);
 			g_VoicePanelList:SetSize(width, ScrH() - theme.rem * 19 - shrun.BottomRightHeight)
 		end
-		draw.RoundedBox(theme.round, 0, 0, self:GetWide(), self:GetTall(), theme:Transparency(theme.bg, .5));
+		//draw.RoundedBox(theme.round, 0, 0, self:GetWide(), self:GetTall(), theme:Transparency(theme.bg, .5));
 	end
 
 	return false;
@@ -211,9 +211,9 @@ local function ShrunCreateVoiceVGUI()
 end
 
 //hook.Remove("InitPostEntity", "CreateVoiceVGUI");
-/*hook.Add( "InitPostEntity", "ShrunCreateVoice", ShrunCreateVoiceVGUI )
+hook.Add( "InitPostEntity", "ShrunCreateVoice", ShrunCreateVoiceVGUI )
 hook.Add( "PlayerEndVoice", "ShrunPlayerEndVoice", ShrunPlayerEndVoice )
-hook.Add( "PlayerStartVoice", "ShrunPlayerStartVoice", ShrunPlayerStartVoice )*/
+hook.Add( "PlayerStartVoice", "ShrunPlayerStartVoice", ShrunPlayerStartVoice )
 
 local HideElements = {"CHudVoiceStatus", "CHudVoiceSelfStatus"}
 hook.Add( "HUDShouldDraw", "ShrunRemoveVoice", function(Element)
