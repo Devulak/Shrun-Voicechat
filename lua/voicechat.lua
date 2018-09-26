@@ -60,7 +60,13 @@ function PANELR:Paint( w, h )
 	draw.RoundedBox( 4, 0, 0, w, h, theme.bgAlternative )
 	//draw.RoundedBox( 4, 0, h - 8, voice * w, 8, Color( 0, voice * 255, 0, 240 ) )
 
-	colBox = theme.blue;
+	local colBox = theme.blue;
+	if GAMEMODE.Name != "Sandbox" then
+		colBox = GAMEMODE:GetTeamColor(self.ply)
+	elseif evolve then
+		local usergroup = self.ply:EV_GetRank()
+		colBox = evolve.ranks[ usergroup ].Color;
+	end
 
 	for k,v in pairs(self.Bars) do
 		if k != 1 then
