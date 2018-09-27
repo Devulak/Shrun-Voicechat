@@ -1,30 +1,35 @@
 local theme = shrun.theme;
 
-local PANELR = {}
+local PANEL = {}
 local PlayerVoicePanels = {}
 
-function PANELR:Init()
+function PANEL:Init()
 
 	self.LabelName = vgui.Create( "DLabel", self )
 	self.LabelName:SetFont( "GModNotify" )
 	self.LabelName:Dock( FILL )
-	self.LabelName:DockMargin( 8, 0, 0, 0 )
 	self.LabelName:SetTextColor( Color( 255, 255, 255, 255 ) )
 
 	self.Avatar = vgui.Create( "AvatarImage", self )
 	self.Avatar:Dock( LEFT )
 	self.Avatar:SetSize( 32, 32 )
+	self.Avatar:DockMargin(0, 0, 8, 0)
 
 	self.Color = color_transparent
 
 	self:SetSize( 250, 32 + 8 )
 	self:DockPadding( 4, 4, 4, 4 )
-	self:DockMargin(0, 4, 0, 0)
 	self:Dock( BOTTOM )
+
+
+	self.Spectrum = vgui.Create( "DPanel", self )
+	self.Spectrum:Dock( FILL )
+	self.Spectrum.Paint = function(self, w, h)
+	end
 
 end
 
-function PANELR:Setup( ply )
+function PANEL:Setup( ply )
 
 	self.ply = ply
 	self.LabelName:SetText( ply:Nick() )
@@ -36,7 +41,7 @@ function PANELR:Setup( ply )
 
 end
 
-function PANELR:Paint( w, h )
+function PANEL:Paint( w, h )
 
 	if not IsValid( self.ply ) then return end
 	local voice = self.ply:VoiceVolume();
@@ -68,17 +73,23 @@ function PANELR:Paint( w, h )
 		colBox = evolve.ranks[ usergroup ].Color;
 	end
 
+
+
+	local width = 4
+	local offset = width
+	local outerMargin = 4
+	local gap = 0
+	local function GetPosPoint(k, v)
+		local x = (k - 1 - self.Timer) * (width + gap) + w + offset;
+		local y = h - v * (h - outerMargin*2) - outerMargin;
+		return x, y;
+	end
+
 	for k,v in pairs(self.Bars) do
 		if k != 1 then
-			local width = 4
-			local offset = width
-			local outerMargin = 4
-			local gap = 0
 
-			local xPos = (k - 1 - self.Timer) * (width + gap) + w + offset;
-			local yPos = h - v * (h - outerMargin*2) - outerMargin;
-			local xPos2 = (k - 2 - self.Timer) * (width + gap) + w + offset;
-			local yPos2 = h - self.Bars[k-1] * (h - outerMargin*2) - outerMargin;
+			local xPos, yPos = GetPosPoint(k, v);
+			local xPos2, yPos2 = GetPosPoint(k-1, self.Bars[k-1]);
 
 			// Bars
 			/*surface.SetDrawColor(v * 255, 255 - v * 255, 0, 255)
@@ -90,6 +101,7 @@ function PANELR:Paint( w, h )
 
 
 			surface.SetDrawColor(colBox)
+			//surface.SetDrawColor(Color(colBox.r,colBox.g,colBox.b,(xPos/w)*255))
 
 			// Hills
 			//surface.DrawLine(xPos2, yPos2, xPos, yPos);/**/
@@ -105,16 +117,16 @@ function PANELR:Paint( w, h )
 
 	draw.RoundedBox(4, 0, 0, 40, 40, theme:Transparency(colBox, voice));
 
-	while #self.Bars > 24 do
+	/*while #self.Bars > 24 do
 		table.remove( self.Bars, 1 );
 		self.Timer = self.Timer - 1;
 		table.remove( self.Bars, 1 );
 		self.Timer = self.Timer - 1;
-	end
+	end*/
 
 end
 
-function PANELR:Think()
+function PANEL:Think()
 	
 	if ( IsValid( self.ply ) ) then
 		self.LabelName:SetText( self.ply:Nick() )
@@ -126,7 +138,7 @@ function PANELR:Think()
 
 end
 
-function PANELR:FadeOut( anim, delta, data )
+function PANEL:FadeOut( anim, delta, data )
 	
 	if ( anim.Finished ) then
 		if ( IsValid( PlayerVoicePanels[ self.ply ] ) ) then
@@ -141,7 +153,7 @@ function PANELR:FadeOut( anim, delta, data )
 
 end
 
-derma.DefineControl( "VoiceNotifyR", "", PANELR, "DPanel" )
+derma.DefineControl( "VoiceNotifyR", "", PANEL, "DPanel" )
 
 
 
