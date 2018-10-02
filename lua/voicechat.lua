@@ -2,8 +2,13 @@
 shrun = shrun or {}
 shrun.VoiceChat = shrun.VoiceChat or {}
 shrun.VoiceChat.Settings = shrun.VoiceChat.Settings or {}
+
+local PANEL = {}
+local PlayerVoicePanels = {}
+local theme = shrun.theme
 local VoiceChat = shrun.VoiceChat
 local Settings = VoiceChat.Settings
+
 VoiceChat.path = "shrun/VoiceChat.txt"
 VoiceChat._BARSBOTTOM = 1
 VoiceChat._BARSTOP = 2
@@ -13,12 +18,12 @@ VoiceChat._BARSSEQUENCE = 5
 
 function VoiceChat:ResetInfo()
 	local Settings = self.Settings
-	/* --- SETTINGS --- */
+	/* --- DEFAULT SETTINGS --- */
 	Settings.VoiceMode = self._BARSSEQUENCE
 	Settings.PointsPerSecond = 10
 	Settings.PointsWidth = 2
 	Settings.PointsGap = 2
-	/* --- SETTINGS --- */
+	/* --- DEFAULT SETTINGS --- */
 end
 
 function VoiceChat:LoadInfo()
@@ -37,25 +42,27 @@ end
 
 
 
-local theme = shrun.theme;
-
-local PANEL = {}
-local PlayerVoicePanels = {}
 
 function PANEL:Init()
 
-	self:SetSize( 250, 32 + 8 )
-	self:DockPadding( 4, 4, 4, 4 )
-	self:DockMargin( 0, 4, 0, 0 )
-	self:Dock( BOTTOM )
+	self:Dock(BOTTOM)
+	self.Paint = function(self, w, h)
+		if not IsValid(self.ply) then return end
+		self:SetSize(theme.rem * 15, theme.rem * 2.5)
+		self:DockPadding(theme.rem * .25, theme.rem * .25, theme.rem * .25, theme.rem * .25)
+		self:DockMargin(0, theme.rem * .25, 0, 0)
+		draw.RoundedBox(theme.round, 0, 0, w, h, theme:Transparency(theme.bgAlternative, .9))
+	end
 
-	self.Avatar = vgui.Create( "AvatarImage", self )
-	self.Avatar:Dock( LEFT )
-	self.Avatar:SetSize( self:GetTall()-8, 32 )
-	self.Avatar:DockMargin(0, 0, 8, 0)
+	self.Avatar = vgui.Create("AvatarImage", self)
+	self.Avatar:Dock(LEFT)
+	self.Avatar.Paint = function(self, w, h)
+		self:SetWide(h)
+		self:DockMargin(0, 0, theme.rem * .5, 0)
+	end
 
-	self.Spectrum = vgui.Create( "DPanel", self )
-	self.Spectrum:Dock( FILL )
+	self.Spectrum = vgui.Create("DPanel", self)
+	self.Spectrum:Dock(FILL)
 	self.Spectrum.Paint = function(self, w, h)
 		if not IsValid( self.ply ) then return end
 		local voice = self.ply:VoiceVolume();
@@ -91,43 +98,16 @@ function PANEL:Init()
 
 
 		local offset = 0
+		local PointsWidth = Settings.PointsWidth * theme.rem / 16
+		local PointsGap = Settings.PointsGap * theme.rem / 16
 		local function GetPosPoint(k, v)
-			local x = (k - 1 - self.Timer) * (Settings.PointsWidth + Settings.PointsGap) + w + offset;
+			local x = (k - 1 - self.Timer) * (PointsWidth + PointsGap) + w + offset;
 			local y = h - v * h;
 			return x, y;
 		end
 
 		for k,v in pairs(self.Bars) do
 			local xPos, yPos = GetPosPoint(k, v);
-			surface.SetDrawColor(Color(colBox.r,colBox.g,colBox.b,(xPos/w*255)))
-
-			if Settings.VoiceMode == VoiceChat._BARSBOTTOM then
-				surface.DrawRect(xPos, yPos, Settings.PointsWidth, v * h)
-			elseif Settings.VoiceMode == VoiceChat._BARSTOP then
-				surface.DrawRect(xPos, 0, Settings.PointsWidth, v * h)
-			elseif Settings.VoiceMode == VoiceChat._BARSREVERSE then
-				surface.DrawRect(xPos, h - v * h/2, Settings.PointsWidth, v * h/2)
-				surface.DrawRect(xPos, 0, Settings.PointsWidth, v * h/2)
-			elseif Settings.VoiceMode == VoiceChat._BARSCENTER then
-				surface.DrawRect(xPos, yPos/2, Settings.PointsWidth, v * h)
-			elseif k != 1 then
-				offset = Settings.PointsWidth + Settings.PointsGap
-				local xPos, yPos = GetPosPoint(k, v);
-				local xPos2, yPos2 = GetPosPoint(k-1, self.Bars[k-1]);
-				kc = k;
-				if self.Reverse then
-					kc = kc + 1
-				end
-
-				if kc % 2 == 0 then
-					surface.DrawLine(xPos2, yPos2 / 2, xPos, h - yPos / 2);
-				else
-					surface.DrawLine(xPos2, h - yPos2 / 2, xPos, yPos / 2);
-				end
-			end
-
-
-
 			// Remove fill
 			if xPos < 0 then
 				table.remove(self.Bars, k);
@@ -138,14 +118,43 @@ function PANEL:Init()
 				else
 					self.Reverse = true;
 				end
+			else
+				surface.SetDrawColor(Color(colBox.r,colBox.g,colBox.b,(xPos/w*255)))
+
+				if Settings.VoiceMode == VoiceChat._BARSBOTTOM then
+					surface.DrawRect(xPos, yPos, PointsWidth, v * h)
+				elseif Settings.VoiceMode == VoiceChat._BARSTOP then
+					surface.DrawRect(xPos, 0, PointsWidth, v * h)
+				elseif Settings.VoiceMode == VoiceChat._BARSREVERSE then
+					surface.DrawRect(xPos, h - v * h/2, PointsWidth, v * h/2)
+					surface.DrawRect(xPos, 0, PointsWidth, v * h/2)
+				elseif Settings.VoiceMode == VoiceChat._BARSCENTER then
+					surface.DrawRect(xPos, yPos/2, PointsWidth, v * h)
+				elseif k != 1 then
+					offset = PointsWidth + PointsGap
+					local xPos, yPos = GetPosPoint(k, v);
+					local xPos2, yPos2 = GetPosPoint(k-1, self.Bars[k-1]);
+					kc = k;
+					if self.Reverse then
+						kc = kc + 1
+					end
+
+					if kc % 2 == 0 then
+						surface.DrawLine(xPos2, yPos2 / 2, xPos, h - yPos / 2);
+					else
+						surface.DrawLine(xPos2, h - yPos2 / 2, xPos, yPos / 2);
+					end
+				end
 			end
 		end
 	end
 
-	self.LabelName = vgui.Create( "DLabel", self )
-	self.LabelName:SetFont( "GModNotify" )
-	self.LabelName:Dock( FILL )
-	self.LabelName:SetTextColor( Color( 255, 255, 255, 255 ) )
+	self.LabelName = vgui.Create("DLabel", self)
+	self.LabelName:SetFont("ChatFont")
+	self.LabelName:Dock(FILL)
+	self.LabelName.Paint = function(self, w, h)
+		self:SetTextColor(theme.txt)
+	end
 
 end
 
@@ -159,12 +168,6 @@ function PANEL:Setup( ply )
 	self.Color = team.GetColor( ply:Team() )
 	
 	self:InvalidateLayout()
-
-end
-
-function PANEL:Paint(w, h)
-	if not IsValid( self.ply ) then return end
-	draw.RoundedBox( 4, 0, 0, w, h, theme:Transparency(theme.bgAlternative, .9) )
 
 end
 
@@ -265,7 +268,7 @@ local function ShrunCreateVoiceVGUI()
 
 	g_VoicePanelList:ParentToHUD()
 	g_VoicePanelList:SetPos( ScrW() - 300, 100 )
-	g_VoicePanelList:SetSize( 250, ScrH() - 200 )
+	g_VoicePanelList:SetSize( theme.rem * 15, ScrH() - 200 )
 	g_VoicePanelList.Paint = function(self, w, h)
 		if shrun.BottomRightHeight then
 			local width = theme.rem * 15;
