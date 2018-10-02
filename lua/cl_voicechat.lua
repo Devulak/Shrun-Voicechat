@@ -16,27 +16,33 @@ VoiceChat._BARSREVERSE = 3
 VoiceChat._BARSCENTER = 4
 VoiceChat._BARSSEQUENCE = 5
 
-function VoiceChat:ResetInfo()
-	local Settings = self.Settings
+function VoiceChat:GetDefaultInfo()
+	local Settings = {}
 	/* --- DEFAULT SETTINGS --- */
 	Settings.VoiceMode = self._BARSSEQUENCE
 	Settings.PointsPerSecond = 10
-	Settings.PointsWidth = 2
-	Settings.PointsGap = 2
+	Settings.PointsWidth = 4
+	Settings.PointsGap = 0
 	/* --- DEFAULT SETTINGS --- */
+	return Settings
+end
+
+function VoiceChat:UpdateServerFromLocal()
+	player.GetBySteamID(LocalPlayer():SteamID()).VoiceChatSettings = self.Settings
 end
 
 function VoiceChat:LoadInfo()
 	if file.Exists(self.path, "DATA") then
 		table.Merge(self.Settings, util.JSONToTable(file.Read(self.path, "DATA")))
 	else
-		self:ResetInfo()
+		self.Settings = self:GetDefaultInfo()
 	end
+	self:UpdateServerFromLocal()
 end
-VoiceChat:LoadInfo()
 
 function VoiceChat:SaveInfo()
 	file.Write(self.path, util.TableToJSON(self.Settings, true))
+	self:UpdateServerFromLocal()
 end
 /* --- PRESETS --- */
 
@@ -63,10 +69,21 @@ function PANEL:Init()
 
 	self.Spectrum = vgui.Create("DPanel", self)
 	self.Spectrum:Dock(FILL)
+	self.Spectrum.Shell = false;
 	self.Spectrum.Paint = function(self, w, h)
 		if not IsValid( self.ply ) then return end
+
+		local Settings = self.ply.VoiceChatSettings or Settings
 		local voice = self.ply:VoiceVolume();
-		voice = math.Rand(0, .5);
+		if self.Shell then
+			voice = math.Rand(0, 1);
+		elseif self.ply == LocalPlayer() then
+			return
+		end
+
+		// Voice Table to average the volume between bars/nodes
+		self.voiceTable = self.voiceTable or {}
+		table.insert(self.voiceTable, voice)
 
 		if self.Timer == nil then
 			self.Timer = 0;
@@ -82,10 +99,16 @@ function PANEL:Init()
 		end
 
 		while math.ceil(self.Timer) > #self.Bars do
-			table.insert(self.Bars, voice);
-		end
+			local sum = 0
 
-		//if self.ply == LocalPlayer() then return end
+			for k,v in pairs(self.voiceTable) do
+				sum = sum + v
+			end
+
+			table.insert(self.Bars, sum / #self.voiceTable);
+
+			self.voiceTable = {}
+		end
 
 		local colBox = theme.blue;
 		if evolve and GAMEMODE.Name == "Sandbox" then
@@ -160,9 +183,13 @@ end
 
 function PANEL:Setup( ply )
 
+	if not ply then self.Spectrum.Shell = true end
+
+	ply = ply or LocalPlayer()
+
 	self.ply = ply
 	self.Spectrum.ply = ply
-	self.LabelName:SetText( ply:Nick() )
+	self.LabelName:SetText(ply:Nick())
 	self.Avatar:SetPlayer( ply )
 	
 	self.Color = team.GetColor( ply:Team() )
@@ -263,7 +290,7 @@ function ShrunPlayerEndVoice( ply )
 end
 
 local function ShrunCreateVoiceVGUI()
-
+	VoiceChat:LoadInfo()
 	g_VoicePanelList = vgui.Create( "DPanel" )
 
 	g_VoicePanelList:ParentToHUD()

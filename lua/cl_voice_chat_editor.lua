@@ -4,21 +4,20 @@ function VoiceChatEditor:createCategoryPanel(name)
 	local panel = vgui.Create("DPanel");
 	panel.Paint = nil;
 	panel:Dock(FILL);
-	panel:DockPadding(10, 10, 10, 10);
+	panel:DockPadding(0, 0, 0, 10);
 
 	local category = self.categoryList:Add(name);
-	category:SetExpanded(false);
 	category:SetContents(panel);
 
 	return panel;
 end
 
-function VoiceChatEditor:createNumSlider(name, description, min, max, func)
-	local panel = self:createCategoryPanel(name);
+function VoiceChatEditor:createNumSlider(name, panel, min, max, func)
 
 	local numSlider = vgui.Create("DNumSlider", panel);
 	numSlider:Dock(TOP);
-	numSlider:SetText(description);
+	numSlider:DockMargin(10, 10, 10, 0);
+	numSlider:SetText(name);
 	numSlider:SetTall(20);
 	numSlider:SetMin(min);
 	numSlider:SetMax(max);
@@ -29,11 +28,11 @@ function VoiceChatEditor:createNumSlider(name, description, min, max, func)
 	return numSlider;
 end
 
-function VoiceChatEditor:createComboBox(name)
-	local panel = self:createCategoryPanel(name);
+function VoiceChatEditor:createComboBox(panel)
 
 	local ComboBx = vgui.Create("DComboBox", panel)
 	ComboBx:Dock(TOP);
+	ComboBx:DockMargin(10, 10, 10, 0);
 
 	return ComboBx;
 end
@@ -60,12 +59,19 @@ function VoiceChatEditor:Init()
 		VoiceChat:SaveInfo()
 	end
 
+	// Example
+	self.Example = self.window:Add("VoiceNotifyR")
+	self.Example:Setup()
+	self.Example:Dock(BOTTOM)
+
+
 	// Category List
 	self.categoryList = vgui.Create("DCategoryList", self.window);
 	self.categoryList:Dock(FILL);
 
 	// VoiceMode
-	self.VoiceMode = self:createComboBox("Voice Mode");
+	self.VoiceModeCategory = self:createCategoryPanel("Voice Mode");
+	self.VoiceMode = self:createComboBox(self.VoiceModeCategory);
 	self.VoiceMode:AddChoice("Sequence", VoiceChat._BARSSEQUENCE, Settings.VoiceMode == VoiceChat._BARSSEQUENCE);
 	self.VoiceMode:AddChoice("Bottom", VoiceChat._BARSBOTTOM, Settings.VoiceMode == VoiceChat._BARSBOTTOM);
 	self.VoiceMode:AddChoice("Top", VoiceChat._BARSTOP, Settings.VoiceMode == VoiceChat._BARSTOP);
@@ -76,7 +82,8 @@ function VoiceChatEditor:Init()
 	end
 
 	// PointsPerSecond
-	self.PointsPerSecond = self:createNumSlider("Nodes Per Second", "Nodes Per Second", 4, 32, function(self, value)
+	self.NodeCategory = self:createCategoryPanel("Nodes");
+	self.PointsPerSecond = self:createNumSlider("Nodes Per Second", self.NodeCategory, 4, 32, function(self, value)
 		if Settings.PointsPerSecond != math.Round(value) then
 			Settings.PointsPerSecond = math.Round(value);
 		end
@@ -84,7 +91,7 @@ function VoiceChatEditor:Init()
 	self.PointsPerSecond:SetValue(Settings.PointsPerSecond)
 
 	// PointsWidth
-	self.PointsWidth = self:createNumSlider("Node Width", "Node Width", 1, 16, function(self, value)
+	self.PointsWidth = self:createNumSlider("Node Width", self.NodeCategory, 1, 16, function(self, value)
 		if Settings.PointsWidth != math.Round(value) then
 			Settings.PointsWidth = math.Round(value);
 		end
@@ -92,7 +99,7 @@ function VoiceChatEditor:Init()
 	self.PointsWidth:SetValue(Settings.PointsWidth)
 
 	// PointsGap
-	self.PointsGap = self:createNumSlider("Node Gap", "Node Gap", 0, 4, function(self, value)
+	self.PointsGap = self:createNumSlider("Node Gap", self.NodeCategory, 0, 4, function(self, value)
 		if Settings.PointsGap != math.Round(value) then
 			Settings.PointsGap = math.Round(value);
 		end
