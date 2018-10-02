@@ -294,15 +294,19 @@ local function ShrunCreateVoiceVGUI()
 	g_VoicePanelList = vgui.Create( "DPanel" )
 
 	g_VoicePanelList:ParentToHUD()
-	g_VoicePanelList:SetPos( ScrW() - 300, 100 )
-	g_VoicePanelList:SetSize( theme.rem * 15, ScrH() - 200 )
 	g_VoicePanelList.Paint = function(self, w, h)
+
+		local width = theme.rem * 15
+		self:SetPos(ScrW() - width - theme.rem, theme.rem);
+		self:SetWide(width)
+
 		if shrun.BottomRightHeight then
-			local width = theme.rem * 15;
-			g_VoicePanelList:SetPos(ScrW() - width -  theme.rem, theme.rem * 18);
-			g_VoicePanelList:SetSize(width, ScrH() - theme.rem * 19 - shrun.BottomRightHeight)
+			self:SetTall(ScrH() - theme.rem * 2 - shrun.BottomRightHeight)
+		else
+			self:SetTall(ScrH() - 200)
 		end
-		//draw.RoundedBox(theme.round, 0, 0, self:GetWide(), self:GetTall(), theme:Transparency(theme.bg, .5));
+
+		// draw.RoundedBox(theme.round, 0, 0, self:GetWide(), self:GetTall(), theme:Transparency(theme.bg, .5));
 	end
 
 	return false;
