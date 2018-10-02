@@ -1,0 +1,14 @@
+{
+	"title"		:	"Shrun Voice Chat",
+	"type"		:	"Effects",
+	"tags"		:	[ "Roleplay", "Build" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		".git*",
+		"LICENSE",
+		"*.md"
+	]
+}
