@@ -1,13 +1,9 @@
 /* --- PRESETS --- */
-shrun = shrun or {}
-shrun.VoiceChat = shrun.VoiceChat or {}
-shrun.VoiceChat.Settings = shrun.VoiceChat.Settings or {}
 
 local PANEL = {}
 local PlayerVoicePanels = {}
 local theme = shrun.theme
 local VoiceChat = shrun.VoiceChat
-local Settings = VoiceChat.Settings
 
 VoiceChat.path = "shrun/VoiceChat.txt"
 VoiceChat._BARSBOTTOM = 1
@@ -27,25 +23,27 @@ function VoiceChat:GetDefaultInfo()
 	return Settings
 end
 
-function VoiceChat:UpdateServerFromLocal()
-	player.GetBySteamID(LocalPlayer():SteamID()).VoiceChatSettings = self.Settings
-end
-
 function VoiceChat:LoadInfo()
+
+	if not file.IsDir("shrun", "DATA") then
+		file.CreateDir("shrun")
+	end
+
 	if file.Exists(self.path, "DATA") then
 		table.Merge(self.Settings, util.JSONToTable(file.Read(self.path, "DATA")))
 	else
 		self.Settings = self:GetDefaultInfo()
 	end
-	self:UpdateServerFromLocal()
+
+	self:SaveToServer()
+
 end
 
 function VoiceChat:SaveInfo()
 	file.Write(self.path, util.TableToJSON(self.Settings, true))
-	self:UpdateServerFromLocal()
+	self:SaveToServer()
 end
 /* --- PRESETS --- */
-
 
 
 
@@ -73,12 +71,11 @@ function PANEL:Init()
 	self.Spectrum.Paint = function(self, w, h)
 		if not IsValid( self.ply ) then return end
 
-		local Settings = self.ply.VoiceChatSettings or Settings
+		local Settings = self.ply.VoiceChatSettings or VoiceChat.Settings
 		local voice = self.ply:VoiceVolume();
 		if self.Shell then
 			voice = math.Rand(0, 1);
-		elseif self.ply == LocalPlayer() then
-			return
+			Settings = VoiceChat.Settings
 		end
 
 		// Voice Table to average the volume between bars/nodes
@@ -291,6 +288,7 @@ end
 
 local function ShrunCreateVoiceVGUI()
 	VoiceChat:LoadInfo()
+	VoiceChat:GetAllFromServer()
 	g_VoicePanelList = vgui.Create( "DPanel" )
 
 	g_VoicePanelList:ParentToHUD()
