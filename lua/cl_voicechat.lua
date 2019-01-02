@@ -110,7 +110,7 @@ function PANEL:Init()
 		local colBox = theme.blue;
 		if evolve and GAMEMODE.Name == "Sandbox" then
 			local usergroup = self.ply:EV_GetRank()
-			colBox = evolve.ranks[ usergroup ].Color;
+			colBox = evolve.ranks[ usergroup ].Color or GAMEMODE:GetTeamColor(self.ply);
 		else
 			colBox = GAMEMODE:GetTeamColor(self.ply)
 		end
