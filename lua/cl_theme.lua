@@ -67,6 +67,13 @@ if CLIENT then
 	surface.CreateFont("FontSub", {
 		font = "Open Sans",
 		size = shrun.theme.rem,
+		weight = 500,
+		antialias = true,
+	})
+
+	surface.CreateFont("FontSubBold", {
+		font = "Open Sans",
+		size = shrun.theme.rem,
 		weight = 700,
 		antialias = true,
 	})
