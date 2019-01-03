@@ -71,7 +71,7 @@ function PANEL:Init()
 	self.Spectrum.Paint = function(self, w, h)
 		if not IsValid( self.ply ) then return end
 
-		local Settings = self.ply.VoiceChatSettings or VoiceChat.Settings
+		local Settings = self.ply.VoiceChatSettings or VoiceChat.Settings // This is where the issue could be
 		local voice = self.ply:VoiceVolume();
 		if self.Shell then
 			voice = math.Rand(0, 1);
