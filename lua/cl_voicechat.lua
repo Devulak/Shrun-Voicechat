@@ -311,8 +311,6 @@ local function ShrunCreateVoiceVGUI()
 		// draw.RoundedBox(theme.round, 0, 0, self:GetWide(), self:GetTall(), theme:Transparency(theme.bg, .5));
 	end
 
-	return false;
-
 end
 
 //hook.Remove("InitPostEntity", "CreateVoiceVGUI");
