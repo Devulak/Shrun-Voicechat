@@ -9,6 +9,10 @@ if SERVER then
 		ply.VoiceChatSettings = net.ReadTable()
 		// print("Server recieved ", ply, ply.VoiceChatSettings)
 
+		if ply.VoiceChatSettings == nil then
+			return
+		end
+
 		net.Start("RecieveChatSettings")
 			net.WriteEntity(ply)
 			net.WriteTable(ply.VoiceChatSettings)
